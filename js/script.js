@@ -49,13 +49,13 @@ showItems = () => {
             console.log(data);
             $('#cardContainer').find('.row').empty();
             for (var i = 0; i < data.length; i++) {
-                // console.log(data[i].image_URL);
+                console.log(data[i].image_URL);
                 let itemCard = `
                     <div class="col-12 col-md-4">
                         <div class="card" data-id="${data[i]._id}">
                             <div class="card-body">
                                 <div id="worktitle" class="card-title">
-                               <div class="cardImg" style="background-image: url(${url}/${data[i].image_URL}); height: 200px; width: 100%;" >
+                               <div class="cardImg" style="background-image: url(${url}/${data[i].image_URL}); height: 200px; width: 100%; background-position: top;background-repeat: no-repeat;background-size: contain;" >
                                 </div>
                                     <h5 class="card-title text-center mt-3" >${data[i].item_name}</h5>
                                     <p class="text-center">$ ${data[i].price}</p>`;
@@ -346,31 +346,6 @@ $('#cardContainer').on('click', '.editBtn', function() {
     const id = $(this).parent().parent().parent().data('id');
     console.log(id);
 
-
-    //THIS PATCH REQUEST APPEARED AFTER I MERGED WITH JOHN'S LATEST MERGE TO MASTER
-    //THIS BREAKS CODE WHEN YOU CLICK EDIT BUTTON, IS THIS IN CORRECT PLACE?
-
-    // $.ajax({
-    //     url:`${url}/addItem/${id}`,
-    //     type: 'PATCH',
-    //     data: {
-    //         userId: sessionStorage.userID
-    //     },
-    //     dataType:'json',
-    //     success: function(item){
-    //         if (item == '401') {
-    //             alert('401 UNAUTHORIZED');
-    //         } else {
-    //             showEditItemForm();
-    //             $('#itemName').val();
-    //             $('#itemPrice').val();
-    //             $('#itemID').val();
-    //             $('#addBtn').text('Edit Product').addClass('btn-warning');
-    //             editing = true;
-    //         }
-    //     }
-    // });
-
     //MODAL NOW APPEARS TO EDIT DATA, BUT I NEED THIS TO APPEAR AFTER AJAX SUCCESS
     $('#editModal').modal('show');
 
@@ -392,7 +367,6 @@ $('#cardContainer').on('click', '.editBtn', function() {
             $('#itemIDEdit').val(item._id);
             $("input[name=itemTypeEdit][value=" + item.clothing_type + "]").attr('checked', 'checked');
             $("input[name=itemConditionEdit][value=" + item.condition + "]").attr('checked', 'checked');
-
 
 
         },
@@ -419,15 +393,6 @@ $('#editItemForm').submit(() => {
     let itemType = $('input[name=itemTypeEdit]:checked').val();
     let itemCondition = $('input[name=itemConditionEdit]:checked').val();
 
-
-
-    // console.log(id.length);
-    // console.log(itemName.length);
-    // console.log(itemDescription.length);
-    // console.log(itemPrice.length);
-    // console.log(itemType);
-    // console.log(itemCondition);
-
     if ((itemName.length != 0) && (itemDescription.length != 0) && (itemPrice.length != 0) ) {
         $.ajax({
             url:`${url}/editItem/${id}`,
@@ -453,38 +418,6 @@ $('#editItemForm').submit(() => {
     } else {
         console.log('uh oh');
     }
-
-
-
-        //trying to get item conditon to console.log
-
-
-        // $.ajax({
-        //     url:`${url}/editItem/${id}`,
-        //     type: 'PATCH',
-        //     data: {
-        //         userId: sessionStorage.userID,
-        //         itemName: itemNameEdit,
-        //         itemDescription: itemDescriptionEdit,
-        //         itemPrice: itemPriceEdit,
-        //         _id: item.itemIDEdit
-        //     },
-        //     dataType:'json',
-        //     success: function(item){
-        //         if (item == '401') {
-        //             alert('401 UNAUTHORIZED');
-        //         } else {
-        //             showEditItemForm();
-        //             $('#itemNameEdit').val();
-        //             $('#itemPriceEdit').val();
-        //             $('#itemDescriptionEdit').val();
-        //             $('#itemIDEdit').val();
-        //
-        //         }
-        //     }
-        // });
-
-
 });
 
 $('#cardContainer').on('click', '.removeBtn', function(){
