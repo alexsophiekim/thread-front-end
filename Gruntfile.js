@@ -47,7 +47,7 @@ module.exports = function(grunt){
 
     // register tasks
     grunt.registerTask('checkJS', ['jshint']);
-    grunt.registerTask('checkCSS',['csslint']);
+    grunt.registerTask('checkCSS',['csslint:lax']);
     grunt.registerTask('minifyCSS', ['cssmin']);
     grunt.registerTask('runWatch', ['watch']);
 };
