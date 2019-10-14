@@ -37,8 +37,6 @@ $(document).ready(() => {
 
 });
 
-// <img class="img-fluid" src="${url}/${data[i].image_URL}">
-  // <div class="cardImg" style="background-image: url(${url}/${data[i].image_URL}); height: 200px; width: 400px;" >
 // GET ALL THE ITEMS FROM MONGO DB AND ADD THEM TO CARDS IN OUR CARD CONTAINER
 showItems = () => {
     $.ajax({
