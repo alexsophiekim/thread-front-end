@@ -3,11 +3,8 @@ let serverPort;
 let url;
 let editing = false;
 let id;
-
-
+//
 $(document).ready(() => {
-    console.log(sessionStorage);
-    // GET THE CONFIG.JSON
     $.ajax({
         url: 'config.json',
         type: 'GET',
@@ -18,12 +15,11 @@ $(document).ready(() => {
             url = `${keys.SERVER_URL}:${keys.SERVER_PORT}`;
             showItems();
         },
-        error: function(){
-            console.log('cannot find config.json file, cannot run application');
+        error: function(err){
+            console.log(`Sorry, but we couldn't find a config.json!`);
         }
     });
     if(sessionStorage.userName){
-        // you're logged in, nice :)
         hideRegisterBtn();
         hideLoginBtn();
         showLogoutBtn();
@@ -34,7 +30,6 @@ $(document).ready(() => {
         hideLogoutBtn();
         hideAddItemForm();
     }
-
 });
 
 // GET ALL THE ITEMS FROM MONGO DB AND ADD THEM TO CARDS IN OUR CARD CONTAINER
@@ -80,28 +75,21 @@ showItems = () => {
                     </div>
                 `;
                 $('#cardContainer').find('.row').append(itemCard);
-                console.log(data[i].bought);
             }
             $('#cardContainer').removeClass('d-none');
         },
         error: function(err){
             console.log(err);
-            console.log('Something went wrong');
+            console.log('How embarassing, a database error! This never usually happens to me.');
         }
     });
 };
 
-// clears session storage when user logs out
-const clearSessionStorage = () => {
-
-};
-
-// clears login and register forms
 const clearForms = () => {
     $('input').val('');
+    $('textarea').val('');
 };
 
-// these all show DOM elements
 const showLoginBtn = () => {
     $('#loginBtn').removeClass('d-none');
 };
@@ -126,7 +114,6 @@ const showEditItemForm = () => {
     $('#editModal').modal('show');
 };
 
-// these all hide DOM elements
 const hideLoginBtn = () => {
     $('#loginBtn').addClass('d-none');
 };
@@ -152,16 +139,15 @@ const hideEditItemForm = () => {
 };
 
 $('#loginBtn').click(() => {
-    console.log('clicked login button');
     $('.main').addClass('d-none');
     $('#lUsername').val(null);
     $('#lPassword').val(null);
     showLoginForm();
     $('#registerFormBox').addClass('d-none');
+    $('#errLogin').empty();
 });
 
 $('#logoutBtn').click(() => {
-    console.log('clicked logout button');
     hideLogoutBtn();
     hideAddItemForm();
     showRegisterBtn();
@@ -172,22 +158,28 @@ $('#logoutBtn').click(() => {
 });
 
 $('#registerBtn').click(() => {
-    console.log('clicked register button');
     $('.main').addClass('d-none');
     $('#rUsername').val(null);
     $('#rEmail').val(null);
     $('#rPassword').val(null);
     $('#rConfirmPassword').val(null);
+    $('#errLogin').empty();
     hideLoginForm();
     showRegisterForm();
 });
 
 $('#loginForm').submit(() => {
     event.preventDefault();
+
+    if(sessionStorage.userID){
+        alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
+        return;
+    }
+
     const username = $('#lUsername').val();
     const password = $('#lPassword').val();
     if ((username.length === 0)||(password.length === 0)) {
-        console.log('Please enter your username and password');
+        alert('Please enter your username and password!');
     } else {
         $.ajax({
             url: `${url}/getUser`,
@@ -198,13 +190,12 @@ $('#loginForm').submit(() => {
             },
             success: function(result){
                 if (result === 'user does not exist'){
-                    console.log('user does not exist');
+                    $('#errLogin').empty();
                     $('#errLogin').append('<p class="text-danger">Sorry, user does not exist. </p>');
                 } else if (result === 'invalid password'){
-                    console.log('invalid password');
+                    alert(`Oh dear, it looks like you've entered the wrong password.`);
                 } else if (sessionStorage.username) {
-                    // user is logged in. This bad joke needs a lot of explanation.
-                    console.log('PERMISSION DENIED');
+                    console.log(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
                 } else {
                     sessionStorage.setItem('userID', result._id);
                     sessionStorage.setItem('userName', result.username);
@@ -217,11 +208,12 @@ $('#loginForm').submit(() => {
                     $('#addListBtn').removeClass('d-none');
                     showItems();
                     showAddItemForm();
+                    $('#errLogin').empty();
                 }
             },
             error: function(err){
                 console.log(err);
-                console.log('Something went wrong');
+                console.log('How embarassing, a database error! This never usually happens to me.');
             }
         });
     }
@@ -229,68 +221,93 @@ $('#loginForm').submit(() => {
 
 $('#registerForm').submit(() => {
     event.preventDefault();
-    console.log('register form got a click');
+
+    if(sessionStorage.userID){
+        alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
+        return;
+    }
+
     const username = $('#rUsername').val();
     const email = $('#rEmail').val();
     const password = $('#rPassword').val();
     const confirmPassword = $('#rConfirmPassword').val();
 
-    if(username.length === 0){
-        console.log('please enter a username');
-    } else if(email.length === 0){
-        console.log('please enter an email');
-    } else if(password.length === 0){
-        console.log('please enter a password');
-    } else if(confirmPassword.length === 0){
-        console.log('please confirm your password');
-    } else if(password !== confirmPassword){
-        console.log('your passwords do not match');
-    } else {
-        $.ajax({
-            url: `${url}/users`,
-            type: 'POST',
-            data: {
-                username: username,
-                email: email,
-                password: password
-            },
-            success: function(result){
-                console.log(result);
-                if (result === 'Invalid user') {
-                    $('#errRego').append('<p class="text-danger">Sorry, this already exists </p>');
+    if (username.length != 0) {
+        if(email.length != 0) {
+            if (password.length != 0) {
+                if (confirmPassword.length != 0) {
+                    if (password === confirmPassword) {
+
+                        $.ajax({
+                            url: `${url}/users`,
+                            type: 'POST',
+                            data: {
+                                username: username,
+                                email: email,
+                                password: password
+                            },
+                            success: function(result){
+                                console.log(result);
+                                if (result === 'Invalid user') {
+                                    alert('Sorry, this username is taken.');
+                                    console.log(sessionStorage);
+                                    showItems();
+                                } else {
+                                    sessionStorage.setItem('userID', result._id);
+                                    sessionStorage.setItem('userName', result.username);
+                                    sessionStorage.setItem('userEmail', result.email);
+                                    $('.main').removeClass('d-none');
+
+                                    hideRegisterForm();
+                                    hideRegisterBtn();
+                                    hideLoginBtn();
+
+                                    showItems();
+                                    showLogoutBtn();
+                                    showAddItemForm();
+                                }
+                            },
+                            error: function(err){
+                                console.log(err);
+                                console.log('How embarassing, a database error! This never usually happens to me.');
+                            }
+                        });
+
+                    } else {
+                        alert('One of those passwords is not like the other!');
+                        showItems();
+                        return;
+                    }
                 } else {
-                    console.log('now you are member');
-                    sessionStorage.setItem('userID', result._id);
-                    sessionStorage.setItem('userName', result.username);
-                    sessionStorage.setItem('userEmail', result.email);
-                    $('.main').removeClass('d-none');
-                    hideLoginBtn();
-                    hideRegisterBtn();
-                    hideRegisterForm();
+                    alert('Please confirm your password!');
                     showItems();
-                    showLogoutBtn();
-                    showAddItemForm();
+                    return;
                 }
-            },
-            error: function(err){
-                console.log(err);
-                console.log('Something went wrong registering a new user');
+            } else {
+                alert('Please enter a password!');
+                showItems();
+                return;
             }
-        });
+        } else {
+            alert('Please enter an email address!');
+            showItems();
+            return;
+        }
+    } else {
+        alert('Please enter a username!');
+        showItems();
+        return;
     }
-    // setSessionStorage(/* whatever username comes back from the Ajax req */);
-
-    hideRegisterForm();
-    hideRegisterBtn();
-    hideLoginBtn();
-
-    showItems();
-    showLogoutBtn();
-    showAddItemForm();
 });
 
+// ADD A NEW ITEM (SUBMIT)
 $('#addItemForm').on('submit', () => {
     event.preventDefault();
+
+    if(!sessionStorage.userID){
+        alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
+        return;
+    }
 
     let formData = new FormData();
 
@@ -301,13 +318,12 @@ $('#addItemForm').on('submit', () => {
     let itemCondition = $('input[name=itemCondition]:checked').val();
     let itemImg = $('#itemImage');
 
-    if (itemName.length && itemDescription.length && itemPrice.length && itemType.length && itemCondition.length && itemImg.length) {
-        // all of the form fields have a value
+    const upload = () => {
         formData.append('itemName', itemName.val());
         formData.append('itemDescription', itemDescription.val());
         formData.append('itemPrice', itemPrice.val());
-        formData.append('itemType', itemType);
-        formData.append('itemCondition', itemCondition);
+        formData.append('itemType', $('input[name=itemType]:checked').val());
+        formData.append('itemCondition', $('input[name=itemCondition]:checked').val());
         formData.append('itemImg', itemImg[0].files[0]);
         formData.append('userID', sessionStorage.userID);
 
@@ -318,27 +334,51 @@ $('#addItemForm').on('submit', () => {
             contentType: false,
             processData: false,
             success:function(result){
-                console.log(result);
+                clearForms();
+                $('#itemImageLabel').html('Upload image');
+                showItems();
             },
-            error: function(){
-                console.log('error sending item to DB');
+            error: function(err){
+                console.log(err);
+                console.log('How embarrassing, a database error! This never usually happens to me.');
             }
         });
+    };
 
-        clearForms();
+    if ((itemName.val().length != 0) && (itemDescription.val().length != 0) && (itemPrice.val().length != 0) && (itemImg[0].files[0] != undefined)){
+
+        if (itemImg[0].files[0].type === 'image/jpg'){
+            upload();
+            return;
+        } else if (itemImg[0].files[0].type === 'image/jpeg'){
+            upload();
+            return;
+        } else if (itemImg[0].files[0].type === 'image/png'){
+            upload();
+            return;
+        } else if (itemImg[0].files[0].type === 'image/gif'){
+            upload();
+            return;
+        } else {
+            alert(`Sorry, but the server can't handle this kind of file. Try JPG, JPEG, PNG or GIF.`);
+        }
 
     }   else {
-        alert('At least one of the form fields is empty.');
+        alert('Please add all of the item details!');
     }
 });
 
-// Edit and delete btns are made when sessionStorage.userID matched
-$('#cardContainer').on('click', '.editBtn', function() {
+$('#itemImage').change(() => {
+    const fileName = $('#itemImage')[0].files[0].name;
+    $('#itemImageLabel').html(fileName);
+});
 
+// CLICK EDIT BUTTON FOR SINGLE ITEM
+$('#cardContainer').on('click', '.editBtn', function() {
     event.preventDefault();
 
     if(!sessionStorage.userID){
-        alert('401, permission denied');
+        alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
         return;
     }
     const id = $(this).parent().parent().parent().data('id');
@@ -347,21 +387,14 @@ $('#cardContainer').on('click', '.editBtn', function() {
     //MODAL NOW APPEARS TO EDIT DATA, BUT I NEED THIS TO APPEAR AFTER AJAX SUCCESS
     $('#editModal').modal('show');
 
-
-    //GET REQUEST GETS ME ITEM DATA AND LOGS IT APPROPRIATE FIELDS
-    //HAVEN'T WORKED RADIOS OUT AS OF 9.09
     $.ajax({
         url:`${url}/getItem/${id}`,
         type: 'GET',
         success: function(item){
             console.log(item);
-            $('#itemNameEdit').empty();
             $('#itemNameEdit').val(item.item_name);
-            $('#itemDescriptionEdit').empty();
             $('#itemDescriptionEdit').val(item.item_description);
-            $('#itemPriceEdit').empty();
             $('#itemPriceEdit').val(item.price);
-            $('#itemIDEdit').empty();
             $('#itemIDEdit').val(item._id);
             $("input[name=itemTypeEdit][value=" + item.clothing_type + "]").attr('checked', 'checked');
             $("input[name=itemConditionEdit][value=" + item.condition + "]").attr('checked', 'checked');
@@ -370,20 +403,20 @@ $('#cardContainer').on('click', '.editBtn', function() {
         },
         error: function(err){
             console.log(err);
-            console.log('something went wrong with getting the single item');
+            console.log('How embarrassing, a database error! This never usually happens to me.');
         }
-
     });
-
 });
 
-
+// SUBMIT NEW DETAILS FOR AN ITEM
 $('#editItemForm').submit(() => {
-    // Ajax request to patch database items using the form data
-
     event.preventDefault();
 
-    let editing = true;
+    if(!sessionStorage.userID){
+        alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
+        return;
+    }
+
     let id = $('#itemIDEdit').val();
     let itemName = $('#itemNameEdit').val();
     let itemDescription = $('#itemDescriptionEdit').val();
@@ -410,14 +443,15 @@ $('#editItemForm').submit(() => {
             },
             error: function(err){
                 console.log(err);
-                console.log('update didnt work');
+                console.log('How embarrassing, a database error! This never usually happens to me.');
             }
         });
     } else {
-        console.log('uh oh');
+        alert(`Please make sure you've put something in all of the fields!`);
     }
 });
 
+// DELETE AN ITEM
 $('#cardContainer').on('click', '.removeBtn', function(){
     event.preventDefault();
     if(!sessionStorage.userID){
@@ -426,29 +460,55 @@ $('#cardContainer').on('click', '.removeBtn', function(){
     }
     const id = $(this).parent().parent().parent().data('id');
     const card = $(this).parent().parent().parent();
-    console.log(id);
     $.ajax({
-        url: `${url}/addItem/${id}`,
-        type: 'DELETE',
-        data: {
-            userID: sessionStorage.userID
-        },
-        success:function(item){
-            if(item == '401'){
-                alert('401 UNAUTHORIZED');
-            } else {
-                card.remove();
-            }
-        },
-        error:function(err) {
-            console.log(err);
-            console.log('something went wrong deleting the product');
-        }
-    });
-    // showItems();
-    // hideEditItemForm();
+      url: `${url}/deleteItem/${id}`,
+      type: 'DELETE',
+      data: {
+          userID: sessionStorage.userID
+      },
+      success:function(response){
+          if(response == '401'){
+              alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
+          } else {
+             card.remove();
+             showItems();
+          }
+      },
+      error:function(err) {
+        console.log(err);
+        console.log('something went wrong deleting the product');
+      }
+  });
 });
-
+// $('#cardContainer').on('click', '.removeBtn', function(){
+//     event.preventDefault();
+//     if(!sessionStorage.userID){
+//         alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
+//         return;
+//     }
+//     const id = $(this).parent().parent().parent().data('id');
+//     const card = $(this).parent().parent().parent();
+//
+//     $.ajax({
+//         url: `${url}/deleteItem/${id}`,
+//         type: 'DELETE',
+//         data: {
+//             userID: sessionStorage.userID
+//         },
+//         success:function(item){
+//             if(item == '401'){
+//                 alert(`401 error: you don't have permission to be here. Sorry. We don't make the rules.`);
+//             } else {
+//                 card.remove();
+//             }
+//         },
+//         error:function(err) {
+//             console.log(err);
+//             console.log('How embarassing, a database error! This never usually happens to me.');
+//         }
+//     });
+// });
+//
 //  CLICK ON "MORE INFO" BUTTON TO SHOW A SINGLE ITEM CARD (MODAL)
 $('#cardContainer').on('click', '.moreInfoBtn', function() {
     // console.log('you clicked on the more info button');
@@ -463,11 +523,11 @@ $('#cardContainer').on('click', '.moreInfoBtn', function() {
             $('#singleItemModalTitle').empty();
             $('#singleItemModalTitle').append(item.item_name);
             $('#singleItemModalBody').empty();
-            // $('#singleItemModalBody').append(`<img class="img-fluid" src="${url}/${item.image_URL}">`);
+            $('#singleItemModalBody').append(`<img class="img-fluid" src="${url}/${item.image_URL}">`);
             $('#singleItemModalBody').append(`<p>Clothing type: ` + item.clothing_type + `</p>`);
             $('#singleItemModalBody').append(`<p>Condition: ` + item.condition + `</p>`);
             $('#singleItemModalBody').append(`<p>Description: ` + item.item_description + `</p>`);
-            $('#singleItemModalBody').append(`<p>Price: ` + item.price + `</p>`);
+            $('#singleItemModalBody').append(`<p>Price: $` + item.price + `</p>`);
         },
         error: function(err){
             console.log(err);
@@ -484,11 +544,20 @@ $('#cardContainer').on('click','.buyBtn',function(){
       url: `${url}/buyItem/${id}`,
       type:'PATCH',
       success:function(){
-        console.log('get request');
+        console.log('changing bought to true in backend');
         showItems();
       },
       error: function(err){
         console.log(err);
+        console.log('How embarassing, a database error! This never usually happens to me.');
       }
     });
+});
+
+$('#titleBtn').click(() => {
+    clearForms();
+
+    $('.main').removeClass('d-none');
+    hideLoginForm();
+    hideRegisterForm();
 });
