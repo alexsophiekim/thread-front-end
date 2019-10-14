@@ -37,6 +37,13 @@ module.exports = function(grunt){
         watch: {
             files: ['<%= jshint.files %>', 'css/style.css'],
             tasks: ['jshint', 'csslint']
+        },
+        uglify:{
+            my_target:{
+                files: {
+                    'js/script.min.js':['js/script.js']
+                }
+            }
         }
     });
     // load plugins
@@ -44,10 +51,11 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-contrib-csslint');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-uglify-es');
 
     // register tasks
     grunt.registerTask('checkJS', ['jshint']);
     grunt.registerTask('checkCSS',['csslint:lax']);
-    grunt.registerTask('minifyCSS', ['cssmin']);
+    grunt.registerTask('minifyAll', ['cssmin'],['uglify']);
     grunt.registerTask('runWatch', ['watch']);
 };
