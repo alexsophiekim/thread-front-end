@@ -32,7 +32,7 @@ $(document).ready(() => {
     }
 });
 
-// GET ALL THE ITEMS FROM MONGO DB AND ADD THEM TO CARDS IN OUR CARD CONTAINER
+// bought === true issues
 showItems = () => {
     $.ajax({
         url: `${url}/allItems`,
