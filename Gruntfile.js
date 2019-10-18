@@ -17,14 +17,8 @@ module.exports = function(grunt){
             },
             src: ['css/style.css']
           },
-          lax: {
-            options: {
-              import: false
-            },
-            src: ['css/style.css']
-          }
-      },
-      cssmin: {
+        },
+        cssmin: {
           target: {
               files: [{
                   expand: true,
@@ -33,7 +27,7 @@ module.exports = function(grunt){
                   ext: '.min.css'
               }]
           }
-      },
+        },
         watch: {
             files: ['<%= jshint.files %>', 'css/style.css'],
             tasks: ['jshint', 'csslint']
