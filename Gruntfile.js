@@ -41,12 +41,14 @@ module.exports = function(grunt){
     });
     // load plugins
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-uglifyjs');
     grunt.loadNpmTasks('grunt-contrib-csslint');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
     // register tasks
     grunt.registerTask('checkJS', ['jshint']);
+    grunt.registerTask('uglifyJS', ['uglifyjs']);
     grunt.registerTask('checkCSS',['csslint']);
     grunt.registerTask('minifyCSS', ['cssmin']);
     grunt.registerTask('runWatch', ['watch']);
